@@ -1,0 +1,94 @@
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart';
+import 'dart:convert';
+import 'weekly_todo.dart';
+
+/// Todoストアのクラス
+///
+/// ※当クラスはシングルトンとなる
+///
+/// 以下の責務を持つ
+/// ・Todoを取得/追加/更新/削除/保存/読込する
+class WeeklyTodoListStore {
+  /// 保存時のキー
+  final String _saveKey = "WeeklyTodo";
+
+  /// Todoリスト
+  List<WeeklyTodo> _list = [];
+
+  /// ストアのインスタンス
+  static final WeeklyTodoListStore _instance = WeeklyTodoListStore._internal();
+
+  /// プライベートコンストラクタ
+  WeeklyTodoListStore._internal();
+
+  /// ファクトリーコンストラクタ
+  /// (インスタンスを生成しないコンストラクタのため、自分でインスタンスを生成する)
+  factory WeeklyTodoListStore() {
+    return _instance;
+  }
+
+  /// Todoの件数を取得する
+  int count() {
+    return _list.length;
+  }
+
+  /// 指定したインデックスのTodoを取得する
+  WeeklyTodo findByIndex(int index) {
+    return _list[index];
+  }
+
+  /// "yyyy/MM/dd HH:mm"形式で日時を取得する
+  String getDateTime() {
+    var format = DateFormat("yyyy/MM/dd HH:mm");
+    var dateTime = format.format(DateTime.now());
+    return dateTime;
+  }
+
+  /// Todoを追加する
+  void add(bool done, String title, String detail) {
+    var id = count() == 0 ? 1 : _list.last.id + 1;
+    var dateTime = getDateTime();
+    var todo = WeeklyTodo(id, title, detail, done, dateTime, dateTime);
+    _list.add(todo);
+    save();
+  }
+
+  /// Todoを更新する
+  void update(WeeklyTodo todo, bool done, [String? title, String? detail]) {
+    todo.done = done;
+    if (title != null) {
+      todo.title = title;
+    }
+    if (detail != null) {
+      todo.detail = detail;
+    }
+    todo.updateDate = getDateTime();
+    save();
+  }
+
+  /// Todoを削除する
+  void delete(WeeklyTodo todo) {
+    _list.remove(todo);
+    save();
+  }
+
+  /// Todoを保存する
+  void save() async {
+    var prefs = await SharedPreferences.getInstance();
+    // SharedPreferencesはプリミティブ型とString型リストしか扱えないため、以下の変換を行っている
+    // TodoList形式 → Map形式 → JSON形式 → StrigList形式
+    var saveTargetList = _list.map((a) => json.encode(a.toJson())).toList();
+    prefs.setStringList(_saveKey, saveTargetList);
+  }
+
+  /// Todoを読込する
+  void load() async {
+    var prefs = await SharedPreferences.getInstance();
+    // SharedPreferencesはプリミティブ型とString型リストしか扱えないため、以下の変換を行っている
+    // StrigList形式 → JSON形式 → Map形式 → TodoList形式
+    var loadTargetList = prefs.getStringList(_saveKey) ?? [];
+    _list =
+        loadTargetList.map((a) => WeeklyTodo.fromJson(json.decode(a))).toList();
+  }
+}

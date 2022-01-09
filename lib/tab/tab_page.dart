@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:helloworld/pages/weekly_page.dart';
-import 'package:helloworld/pages/monthly_page.dart';
-import 'package:helloworld/pages/daily_page.dart';
+import 'package:helloworld/tab/pages/weekly_todo/weekly_todo_list_page.dart';
+import 'package:helloworld/tab/pages/daily_todo/daily_todo_list_page.dart';
+import 'package:helloworld/tab/pages/monthly_todo/monthly_todo_list_page.dart';
 
 class TabPage extends StatelessWidget {
   final _tab = <Tab>[
@@ -23,9 +23,9 @@ class TabPage extends StatelessWidget {
         ),
         body: TabBarView(
           children: <Widget>[
-            DailyPage(),
-            WeeklyPage(),
-            MonthlyPage(),
+            DailyTodoPage(),
+            WeeklyTodoPage(),
+            MonthlyTodoPage(),
           ],
         ),
       ),
